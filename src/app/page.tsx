@@ -19,7 +19,11 @@ interface ApiProduct {
   name: string;
   description: string;
   price: number;
+  original_price: number | null;
   stock: number;
+  stock_quantity: number;
+  rating: number | null;
+  review_count: number | null;
   category: string;
   image_url: string | null;
 }
@@ -66,11 +70,11 @@ function ProductSkeleton() {
 function ProductCard({ product, onAddToCart }: { product: ApiProduct; onAddToCart: (p: ApiProduct) => void }) {
   const { toggle, isFavourite } = useFavourites();
   const wished = isFavourite(product.id);
-  const rating = 4.0 + Math.random() * 1;
-  const reviews = Math.floor(Math.random() * 800) + 40;
-  const hasDiscount = product.price > 2000;
-  const originalPrice = hasDiscount ? Math.round(product.price * 1.18) : null;
-  const discountPct = originalPrice ? Math.round(((originalPrice - product.price) / originalPrice) * 100) : 0;
+  const rating = Number(product.rating ?? 0);
+  const reviews = Number(product.review_count ?? 0);
+  const hasDiscount = !!product.original_price;
+  const salePrice = product.original_price ?? product.price;
+  const discountPct = hasDiscount ? Math.round((1 - Number(product.original_price) / Number(product.price)) * 100) : 0;
 
   return (
     <div className="group bg-white rounded-2xl overflow-hidden border border-gray-100 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
@@ -115,21 +119,23 @@ function ProductCard({ product, onAddToCart }: { product: ApiProduct; onAddToCar
           </h3>
         </Link>
         {/* Rating */}
-        <div className="flex items-center gap-1 mb-3">
-          {[...Array(5)].map((_, i) => (
-            <Star key={i} className={`w-3 h-3 ${i < Math.floor(rating) ? "fill-amber-400 text-amber-400" : "text-gray-200"}`} />
-          ))}
-          <span className="text-[11px] text-gray-400 ml-1">({reviews})</span>
-        </div>
+        {reviews > 0 && (
+          <div className="flex items-center gap-1 mb-3">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className={`w-3 h-3 ${i < Math.floor(rating) ? "fill-amber-400 text-amber-400" : "text-gray-200"}`} />
+            ))}
+            <span className="text-[11px] text-gray-400 ml-1">({reviews})</span>
+          </div>
+        )}
         {/* Price */}
         <div className="mt-auto">
           <div className="flex items-baseline gap-2 mb-3">
             <span className="text-base font-black text-gray-900">
-              LKR {product.price.toLocaleString()}
+              LKR {Number(salePrice).toLocaleString()}
             </span>
-            {originalPrice && (
+            {hasDiscount && (
               <span className="text-xs text-gray-400 line-through">
-                LKR {originalPrice.toLocaleString()}
+                LKR {Number(product.price).toLocaleString()}
               </span>
             )}
           </div>
@@ -195,15 +201,17 @@ export default function HomePage() {
   // Cart bridge — API product doesn't match the full Product type the cart expects,
   // so we build a minimal compatible object
   const handleAddToCart = (p: ApiProduct) => {
+    const salePrice = p.original_price ?? p.price;
     addItem({
       id: p.id,
       name: p.name,
       description: p.description,
-      price: p.price,
+      price: Number(salePrice),
+      originalPrice: p.original_price ? Number(p.price) : undefined,
       images: p.image_url ? [p.image_url] : [],
       category: p.category,
-      rating: 4.5,
-      reviewCount: 0,
+      rating: Number(p.rating ?? 0),
+      reviewCount: Number(p.review_count ?? 0),
       inStock: p.stock > 0,
       isWholesale: false,
       partnerId: "direct",

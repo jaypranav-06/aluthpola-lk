@@ -14,6 +14,9 @@ export async function GET(request: NextRequest) {
         p.price,
         p.original_price,
         p.stock_quantity as stock,
+        p.stock_quantity,
+        p.rating,
+        p.review_count,
         COALESCE(c.name, 'Uncategorized') as category,
         pi.image_url,
         p.created_at
