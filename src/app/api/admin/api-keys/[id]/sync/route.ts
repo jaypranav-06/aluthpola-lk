@@ -137,10 +137,10 @@ async function syncProductsFromPlatform(apiKey: any) {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const apiKeyId = params.id;
+    const { id: apiKeyId } = await params;
 
     // Get the API key details
     const apiKeyResult = await query(
