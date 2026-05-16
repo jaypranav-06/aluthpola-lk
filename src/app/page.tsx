@@ -396,12 +396,7 @@ export default function HomePage() {
               <Package className="w-16 h-16 text-gray-300" strokeWidth={1} />
             </div>
             <p className="text-gray-500 font-semibold text-lg mb-1">No products yet</p>
-            <p className="text-gray-400 text-sm mb-6">Add products from the admin panel to see them here</p>
-            <Link href="/admin/dashboard"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-all"
-              style={{ background: "#f97316" }}>
-              Go to Admin Panel <ArrowRight className="w-4 h-4" />
-            </Link>
+            <p className="text-gray-400 text-sm mb-6">Check back soon for new products</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
