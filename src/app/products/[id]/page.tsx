@@ -61,7 +61,8 @@ export default function ProductDetailPage() {
       partnerName: "Aluthpola",
       partnerId: "aluthpola",
       description: product.description,
-      images: product.image_url ? [product.image_url] : [],
+      isWholesale: false,
+      tags: [],
     }, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
