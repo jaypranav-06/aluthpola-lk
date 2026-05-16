@@ -7,7 +7,7 @@ interface User {
   email: string;
   name: string;
   phone?: string;
-  role: "user" | "admin";
+  role: "user" | "admin" | "super_admin";
   isAuthenticated: boolean;
 }
 
