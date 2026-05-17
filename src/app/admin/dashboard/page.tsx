@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { UserRole } from "@/types";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, TrendingUp,
@@ -116,8 +117,7 @@ export default function AdminDashboard() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black"
-            style={{ background: "linear-gradient(135deg,#f97316,#fb923c)" }}>A</div>
+          <Image src="/Aluthpola Logo.png" alt="Aluthpola.lk" width={120} height={48} className="h-10 w-auto object-contain" />
           <p className="text-sm text-gray-400">Loading dashboard...</p>
         </div>
       </div>
@@ -128,14 +128,10 @@ export default function AdminDashboard() {
     <aside className={`${mobile ? "w-64" : sidebarOpen ? "w-60" : "w-16"} flex-shrink-0 bg-gray-900 flex flex-col transition-all duration-300 ${mobile ? "" : "hidden lg:flex"}`}
       style={{ minHeight: "100vh" }}>
       <div className="flex items-center gap-3 px-4 py-5 border-b border-gray-800">
-        <Link href="/" className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-black text-sm flex-shrink-0"
-            style={{ background: "linear-gradient(135deg,#f97316,#fb923c)" }}>A</div>
-          {(sidebarOpen || mobile) && (
-            <span className="text-white font-black text-base tracking-tight">
-              Aluthpola<span style={{ color: "#f97316" }}>.lk</span>
-            </span>
-          )}
+        <Link href="/" className="flex items-center min-w-0 flex-1">
+          <Image src="/Aluthpola Logo.png" alt="Aluthpola.lk" width={120} height={48}
+            className={`object-contain ${sidebarOpen || mobile ? "h-9 w-auto" : "h-8 w-8 object-left"}`}
+            />
         </Link>
         {!mobile && (
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="ml-auto text-gray-500 hover:text-gray-300 transition-colors">

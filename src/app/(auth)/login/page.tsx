@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, LogIn, AlertCircle } from "lucide-react";
 
@@ -51,14 +52,8 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-lg"
-              style={{ background: "linear-gradient(135deg,#f97316,#fb923c)" }}>
-              A
-            </div>
-            <span className="text-2xl font-black text-gray-900">
-              Aluthpola<span style={{ color: "#f97316" }}>.lk</span>
-            </span>
+          <Link href="/" className="inline-flex mb-6">
+            <Image src="/Aluthpola Logo.png" alt="Aluthpola.lk" width={160} height={64} className="h-14 w-auto object-contain" />
           </Link>
           <h1 className="text-2xl font-black text-gray-900 mb-1">Welcome back</h1>
           <p className="text-gray-400 text-sm">Sign in to your account to continue</p>

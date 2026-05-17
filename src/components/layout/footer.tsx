@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin, CreditCard, Building2, Smartphone, Banknote } from "lucide-react";
 
 const LINKS = {
@@ -44,14 +45,14 @@ export function Footer() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-10">
           {/* Brand */}
           <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-lg"
-                style={{ background: "linear-gradient(135deg,#f97316,#fb923c)" }}>
-                A
-              </div>
-              <span className="text-xl font-black text-white tracking-tight">
-                Aluthpola<span style={{ color: "#f97316" }}>.lk</span>
-              </span>
+            <div className="mb-4">
+              <Image
+                src="/Aluthpola Logo.png"
+                alt="Aluthpola.lk"
+                width={160}
+                height={64}
+                className="h-14 w-auto object-contain"
+              />
             </div>
             <p className="text-sm text-gray-400 leading-relaxed mb-5">
               Sri Lanka's trusted online marketplace. Discover thousands of products from verified sellers — delivered to your door.

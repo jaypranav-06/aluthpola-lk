@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
@@ -62,14 +63,15 @@ export function Header() {
         <div className="bg-white border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
             {/* Logo */}
-            <Link href="/" className="flex-shrink-0 flex items-center gap-2 group">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-lg"
-                style={{ background: "linear-gradient(135deg,#f97316,#fb923c)" }}>
-                A
-              </div>
-              <span className="hidden sm:block text-xl font-black text-gray-900 tracking-tight">
-                Aluthpola<span style={{ color: "#f97316" }}>.lk</span>
-              </span>
+            <Link href="/" className="flex-shrink-0 flex items-center group">
+              <Image
+                src="/Aluthpola Logo.png"
+                alt="Aluthpola.lk"
+                width={160}
+                height={64}
+                className="h-14 w-auto object-contain"
+                priority
+              />
             </Link>
 
             {/* Search */}

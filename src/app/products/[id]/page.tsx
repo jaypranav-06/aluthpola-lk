@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useCart } from "@/hooks/use-cart";
 import { useFavourites } from "@/hooks/use-favourites";
 import { ArrowLeft, ShoppingCart, Heart, Share2, Star, Check, Truck, Shield, RotateCcw, Package } from "lucide-react";
@@ -77,8 +78,7 @@ export default function ProductDetailPage() {
   if (loading) return (
     <div className="flex min-h-[60vh] items-center justify-center">
       <div className="flex flex-col items-center gap-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black animate-pulse"
-          style={{ background: "linear-gradient(135deg,#f97316,#fb923c)" }}>A</div>
+        <Image src="/Aluthpola Logo.png" alt="Aluthpola.lk" width={120} height={48} className="h-10 w-auto object-contain animate-pulse" />
         <p className="text-sm text-gray-400">Loading product…</p>
       </div>
     </div>

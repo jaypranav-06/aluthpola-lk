@@ -61,11 +61,10 @@ function ProductSkeleton() {
 function RankBadge({ rank }: { rank: number }) {
   if (rank > 3) return null;
   const colors = ["#f59e0b", "#94a3b8", "#b45309"];
-  const labels = ["🥇", "🥈", "🥉"];
   return (
-    <span className="absolute top-3 left-3 z-10 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shadow-md"
+    <span className="absolute top-3 left-3 z-10 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white shadow-md"
       style={{ background: colors[rank - 1] }}>
-      {labels[rank - 1]}
+      #{rank}
     </span>
   );
 }

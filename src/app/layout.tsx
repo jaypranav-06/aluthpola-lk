@@ -24,6 +24,10 @@ export const metadata: Metadata = {
     "Shop from Amazon, Temu, AliExpress, and local Sri Lankan retailers all in one place. Get the best deals on electronics, fashion, home goods, and wholesale products.",
   keywords:
     "Sri Lanka, e-commerce, online shopping, Amazon, Temu, AliExpress, wholesale, electronics, fashion",
+  icons: {
+    icon: "/Aluthpola Logo.png",
+    apple: "/Aluthpola Logo.png",
+  },
 };
 
 export default function RootLayout({
