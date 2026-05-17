@@ -13,7 +13,7 @@ export default function FavouritesPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-5xl mx-auto px-4 py-6">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center"
               style={{ background: "linear-gradient(135deg,#fef2f2,#fee2e2)" }}>
@@ -27,7 +27,7 @@ export default function FavouritesPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {favourites.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
             <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center">
@@ -55,7 +55,7 @@ export default function FavouritesPage() {
                   style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
 
                   {/* Image */}
-                  <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden">
+                  <div className="relative aspect-square bg-gray-50 overflow-hidden">
                     {product.image_url ? (
                       <img src={product.image_url} alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />

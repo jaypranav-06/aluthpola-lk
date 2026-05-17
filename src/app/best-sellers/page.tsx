@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  ShoppingCart, Heart, Star, ChevronRight, Sparkles,
+  ShoppingCart, Heart, Star, ChevronRight,
   SlidersHorizontal, Grid3x3, List, X, Package,
-  Truck, ArrowRight, TrendingUp, Zap, Search,
-  Laptop, Shirt, ShoppingBasket, Home, Dumbbell, Smartphone, Gamepad2,
+  Truck, ArrowRight, Trophy, Search,
+  Laptop, Shirt, ShoppingBasket, Home, Dumbbell, Smartphone, Gamepad2, Sparkles,
 } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useFavourites } from "@/hooks/use-favourites";
@@ -17,28 +17,30 @@ interface ApiProduct {
   name: string;
   description: string;
   price: number;
+  original_price: number | null;
   stock: number;
   category: string;
   image_url: string | null;
-  created_at?: string;
+  rating: number | null;
+  review_count: number | null;
 }
 
 const CATEGORIES = [
-  { label: "All",               icon: Sparkles,       color: "#f97316" },
-  { label: "Electronics",       icon: Laptop,         color: "#3b82f6" },
-  { label: "Fashion",           icon: Shirt,          color: "#a855f7" },
-  { label: "Groceries",         icon: ShoppingBasket, color: "#22c55e" },
-  { label: "Home & Living",     icon: Home,           color: "#f59e0b" },
-  { label: "Sports",            icon: Dumbbell,       color: "#14b8a6" },
-  { label: "Mobile Accessories",icon: Smartphone,     color: "#eab308" },
-  { label: "Gaming",            icon: Gamepad2,       color: "#8b5cf6" },
+  { label: "All",                icon: Sparkles,       color: "#f97316" },
+  { label: "Electronics",        icon: Laptop,         color: "#3b82f6" },
+  { label: "Fashion",            icon: Shirt,          color: "#a855f7" },
+  { label: "Groceries",          icon: ShoppingBasket, color: "#22c55e" },
+  { label: "Home & Living",      icon: Home,           color: "#f59e0b" },
+  { label: "Sports",             icon: Dumbbell,       color: "#14b8a6" },
+  { label: "Mobile Accessories", icon: Smartphone,     color: "#eab308" },
+  { label: "Gaming",             icon: Gamepad2,       color: "#8b5cf6" },
 ];
 
 const SORT_OPTIONS = [
-  { key: "newest",      label: "Newest First" },
-  { key: "price_asc",  label: "Price: Low to High" },
-  { key: "price_desc", label: "Price: High to Low" },
-  { key: "popular",    label: "Most Popular" },
+  { key: "best_rated",   label: "Best Rated" },
+  { key: "most_reviews", label: "Most Reviews" },
+  { key: "price_asc",    label: "Price: Low to High" },
+  { key: "price_desc",   label: "Price: High to Low" },
 ];
 
 function ProductSkeleton() {
@@ -56,24 +58,39 @@ function ProductSkeleton() {
   );
 }
 
-function ProductCard({ product, onAddToCart, view }: {
+function RankBadge({ rank }: { rank: number }) {
+  if (rank > 3) return null;
+  const colors = ["#f59e0b", "#94a3b8", "#b45309"];
+  const labels = ["🥇", "🥈", "🥉"];
+  return (
+    <span className="absolute top-3 left-3 z-10 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shadow-md"
+      style={{ background: colors[rank - 1] }}>
+      {labels[rank - 1]}
+    </span>
+  );
+}
+
+function ProductCard({ product, onAddToCart, view, rank }: {
   product: ApiProduct;
   onAddToCart: (p: ApiProduct) => void;
   view: "grid" | "list";
+  rank: number;
 }) {
   const { toggle, isFavourite } = useFavourites();
   const wished = isFavourite(product.id);
   const [adding, setAdding] = useState(false);
+
   const handleToggleFav = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggle({ id: product.id, name: product.name, description: product.description, price: product.price, stock: product.stock, in_stock: product.stock > 0, category: product.category, image_url: product.image_url });
+    toggle({
+      id: product.id, name: product.name, description: product.description,
+      price: product.original_price ?? product.price,
+      original_price: product.original_price ? product.price : undefined,
+      stock: product.stock, in_stock: product.stock > 0,
+      category: product.category, image_url: product.image_url,
+    });
   };
-  const rating = 4.0 + (product.id.charCodeAt(0) % 10) / 10;
-  const reviews = 40 + (product.id.charCodeAt(0) % 8) * 80;
-  const hasDiscount = product.price > 2000;
-  const originalPrice = hasDiscount ? Math.round(product.price * 1.18) : null;
-  const discountPct = originalPrice ? Math.round(((originalPrice - product.price) / originalPrice) * 100) : 0;
 
   const handleAdd = async () => {
     setAdding(true);
@@ -82,22 +99,36 @@ function ProductCard({ product, onAddToCart, view }: {
     setAdding(false);
   };
 
+  const rating = Number(product.rating ?? 4.2);
+  const reviews = Number(product.review_count ?? 0);
+  const salePrice = product.original_price ?? product.price;
+  const originalPrice = product.original_price ? product.price : null;
+  const discountPct = originalPrice ? Math.round(((originalPrice - salePrice) / originalPrice) * 100) : 0;
+
   if (view === "list") {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 flex gap-4 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
+      <div className="bg-white rounded-2xl border border-gray-100 flex gap-4 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative"
         style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
         <Link href={`/products/${product.id}`}
           className="relative w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden bg-gray-50">
           {product.image_url
             ? <Image src={product.image_url} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" unoptimized />
             : <div className="w-full h-full flex items-center justify-center"><Package className="w-8 h-8 text-gray-300" /></div>}
-          {hasDiscount && (
+          {discountPct > 0 && (
             <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold text-white"
               style={{ background: "#f97316" }}>{discountPct}% OFF</span>
           )}
         </Link>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-semibold text-orange-500 uppercase tracking-wider mb-0.5">{product.category}</p>
+          <div className="flex items-center gap-2 mb-0.5">
+            <p className="text-[11px] font-semibold text-orange-500 uppercase tracking-wider">{product.category}</p>
+            {rank <= 3 && (
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full text-white"
+                style={{ background: rank === 1 ? "#f59e0b" : rank === 2 ? "#94a3b8" : "#b45309" }}>
+                #{rank}
+              </span>
+            )}
+          </div>
           <Link href={`/products/${product.id}`}>
             <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 hover:text-orange-500 transition-colors">{product.name}</h3>
           </Link>
@@ -106,12 +137,12 @@ function ProductCard({ product, onAddToCart, view }: {
             {[...Array(5)].map((_, i) => (
               <Star key={i} className={`w-3 h-3 ${i < Math.floor(rating) ? "fill-amber-400 text-amber-400" : "text-gray-200 fill-gray-200"}`} />
             ))}
-            <span className="text-[11px] text-gray-400 ml-1">({reviews})</span>
+            <span className="text-[11px] text-gray-400 ml-1">{rating.toFixed(1)} ({reviews.toLocaleString()})</span>
           </div>
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center gap-2">
-              <span className="text-lg font-black text-gray-900">LKR {product.price.toLocaleString()}</span>
-              {originalPrice && <span className="text-xs text-gray-400 line-through">LKR {originalPrice.toLocaleString()}</span>}
+              <span className="text-lg font-black text-gray-900">LKR {Number(salePrice).toLocaleString()}</span>
+              {originalPrice && <span className="text-xs text-gray-400 line-through">LKR {Number(originalPrice).toLocaleString()}</span>}
             </div>
             <div className="flex items-center gap-2">
               <button onClick={handleToggleFav}
@@ -142,13 +173,11 @@ function ProductCard({ product, onAddToCart, view }: {
                 <Package className="w-12 h-12" /><span className="text-xs">No image</span>
               </div>}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-            {hasDiscount && (
+            <RankBadge rank={rank} />
+            {discountPct > 0 && (
               <span className="px-2 py-0.5 rounded-lg text-[11px] font-bold text-white shadow-sm"
-                style={{ background: "#f97316" }}>{discountPct}% OFF</span>
+                style={{ background: "#f97316", marginTop: rank <= 3 ? "28px" : "0" }}>{discountPct}% OFF</span>
             )}
-            <span className="px-2 py-0.5 rounded-lg text-[11px] font-bold text-white shadow-sm bg-emerald-500 flex items-center gap-1">
-              <Zap className="w-2.5 h-2.5" /> New
-            </span>
           </div>
         </Link>
         <button onClick={handleToggleFav}
@@ -165,12 +194,12 @@ function ProductCard({ product, onAddToCart, view }: {
           {[...Array(5)].map((_, i) => (
             <Star key={i} className={`w-3 h-3 ${i < Math.floor(rating) ? "fill-amber-400 text-amber-400" : "text-gray-200 fill-gray-200"}`} />
           ))}
-          <span className="text-[11px] text-gray-400 ml-1">({reviews})</span>
+          <span className="text-[11px] text-gray-400 ml-1">{rating.toFixed(1)} ({reviews.toLocaleString()})</span>
         </div>
         <div className="mt-auto">
           <div className="flex items-baseline gap-2 mb-3">
-            <span className="text-lg font-black text-gray-900">LKR {product.price.toLocaleString()}</span>
-            {originalPrice && <span className="text-xs text-gray-400 line-through">LKR {originalPrice.toLocaleString()}</span>}
+            <span className="text-lg font-black text-gray-900">LKR {Number(salePrice).toLocaleString()}</span>
+            {originalPrice && <span className="text-xs text-gray-400 line-through">LKR {Number(originalPrice).toLocaleString()}</span>}
           </div>
           <button onClick={handleAdd} disabled={adding || product.stock === 0}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
@@ -184,12 +213,12 @@ function ProductCard({ product, onAddToCart, view }: {
   );
 }
 
-export default function NewArrivalsPage() {
+export default function BestSellersPage() {
   const { addItem } = useCart();
   const [products, setProducts] = useState<ApiProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("All");
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("best_rated");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -200,27 +229,30 @@ export default function NewArrivalsPage() {
       .then(r => r.json())
       .then(d => {
         if (!d.success) return;
-        const all: ApiProduct[] = d.products;
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - 30);
-        const recent = all.filter(p => p.created_at && new Date(p.created_at) >= cutoff);
-        // fallback: if fewer than 5 products in last 30 days, show the 20 most recent
-        setProducts(recent.length >= 5 ? recent : all.slice(0, 20));
+        // Sort by rating desc then review_count desc to pick top sellers
+        const sorted = (d.products as ApiProduct[]).sort((a, b) => {
+          const ra = a.rating ?? 0, rb = b.rating ?? 0;
+          if (rb !== ra) return rb - ra;
+          return (b.review_count ?? 0) - (a.review_count ?? 0);
+        });
+        setProducts(sorted);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
   const handleAddToCart = (product: ApiProduct) => {
+    const salePrice = product.original_price ?? product.price;
     addItem({
       id: product.id,
       name: product.name,
       description: product.description,
-      price: product.price,
+      price: salePrice,
+      originalPrice: product.original_price ? product.price : undefined,
       images: product.image_url ? [product.image_url] : [],
       category: product.category,
-      rating: 4.5,
-      reviewCount: 0,
+      rating: product.rating ?? 4.2,
+      reviewCount: product.review_count ?? 0,
       inStock: product.stock > 0,
       isWholesale: false,
       partnerId: "aluthpola",
@@ -232,47 +264,51 @@ export default function NewArrivalsPage() {
   const filtered = products
     .filter(p => activeCategory === "All" || p.category === activeCategory)
     .filter(p => !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase()))
-    .filter(p => p.price >= priceRange[0] && p.price <= priceRange[1])
+    .filter(p => {
+      const salePrice = p.original_price ?? p.price;
+      return salePrice >= priceRange[0] && salePrice <= priceRange[1];
+    })
     .sort((a, b) => {
-      if (sortBy === "price_asc")  return a.price - b.price;
-      if (sortBy === "price_desc") return b.price - a.price;
-      if (sortBy === "popular")    return b.stock - a.stock;
+      if (sortBy === "best_rated")   return (b.rating ?? 0) - (a.rating ?? 0);
+      if (sortBy === "most_reviews") return (b.review_count ?? 0) - (a.review_count ?? 0);
+      const pa = a.original_price ?? a.price, pb = b.original_price ?? b.price;
+      if (sortBy === "price_asc")    return pa - pb;
+      if (sortBy === "price_desc")   return pb - pa;
       return 0;
     });
 
-  const maxPrice = products.length ? Math.max(...products.map(p => p.price)) : 500000;
+  const maxPrice = products.length
+    ? Math.max(...products.map(p => p.original_price ?? p.price))
+    : 500000;
 
   return (
     <div className="min-h-screen bg-gray-50">
 
       {/* Hero banner */}
-      <div className="relative overflow-hidden bg-gray-900" style={{ background: "linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#0f172a 100%)" }}>
-        {/* Subtle grid pattern */}
+      <div className="relative overflow-hidden" style={{ background: "linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#0f172a 100%)" }}>
         <div className="absolute inset-0 opacity-[0.03]"
           style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-        {/* Orange glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] rounded-full opacity-20"
           style={{ background: "radial-gradient(ellipse, #f97316 0%, transparent 70%)", filter: "blur(60px)" }} />
 
         <div className="relative max-w-7xl mx-auto px-4 py-14">
-          {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-xs text-gray-500 mb-6">
             <Link href="/" className="hover:text-gray-300 transition-colors">Home</Link>
             <ChevronRight className="w-3 h-3" />
-            <span className="text-gray-300">New Arrivals</span>
+            <span className="text-gray-300">Best Sellers</span>
           </div>
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold mb-4"
                 style={{ background: "rgba(249,115,22,0.15)", color: "#fb923c", border: "1px solid rgba(249,115,22,0.25)" }}>
-                <Zap className="w-3 h-3" /> Just Dropped
+                <Trophy className="w-3 h-3" /> Customer Favourites
               </div>
               <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-3">
-                New <span style={{ background: "linear-gradient(135deg,#f97316,#fb923c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Arrivals</span>
+                Best <span style={{ background: "linear-gradient(135deg,#f97316,#fb923c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Sellers</span>
               </h1>
               <p className="text-gray-400 text-base max-w-md">
-                Fresh products added to our collection. Be the first to discover the latest arrivals across all categories.
+                Our most loved products, chosen by customers across Sri Lanka. Top-rated and trusted by thousands.
               </p>
             </div>
             <div className="flex items-center gap-6">
@@ -299,11 +335,11 @@ export default function NewArrivalsPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
 
-        {/* Search + controls bar */}
+        {/* Search + controls */}
         <div className="flex flex-wrap items-center gap-3 mb-6">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" placeholder="Search new arrivals..."
+            <input type="text" placeholder="Search best sellers..."
               value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all" />
             {searchQuery && (
@@ -383,13 +419,12 @@ export default function NewArrivalsPage() {
                 })}
               </div>
 
-              {/* Trending badge */}
               <div className="mt-5 p-3 rounded-xl" style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)" }}>
                 <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp className="w-4 h-4 text-orange-500" />
-                  <p className="text-xs font-bold text-orange-700">Trending Now</p>
+                  <Trophy className="w-4 h-4 text-orange-500" />
+                  <p className="text-xs font-bold text-orange-700">Top Picks</p>
                 </div>
-                <p className="text-[11px] text-orange-600">Electronics & Gaming are the most viewed this week.</p>
+                <p className="text-[11px] text-orange-600">Products ranked by customer ratings and reviews.</p>
               </div>
             </div>
           </aside>
@@ -426,7 +461,6 @@ export default function NewArrivalsPage() {
               )}
             </div>
 
-            {/* Grid / List */}
             {loading ? (
               <div className={viewMode === "grid" ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "flex flex-col gap-3"}>
                 {[...Array(8)].map((_, i) => <ProductSkeleton key={i} />)}
@@ -451,12 +485,11 @@ export default function NewArrivalsPage() {
               <div className={viewMode === "grid"
                 ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 : "flex flex-col gap-3"}>
-                {filtered.map(product => (
-                  <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} view={viewMode} />
+                {filtered.map((product, index) => (
+                  <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} view={viewMode} rank={index + 1} />
                 ))}
               </div>
             )}
-
           </div>
         </div>
       </div>

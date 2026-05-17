@@ -50,11 +50,12 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function OrdersPage() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (isLoading) return;
     if (!isAuthenticated) { router.push("/login"); return; }
     if (!user?.email) return;
 
@@ -62,7 +63,7 @@ export default function OrdersPage() {
       .then((r) => r.json())
       .then((data) => setOrders(data.orders ?? []))
       .finally(() => setLoading(false));
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, isLoading, user, router]);
 
   return (
     <div className="min-h-screen bg-gray-50">

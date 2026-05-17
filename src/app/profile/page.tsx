@@ -24,7 +24,7 @@ import {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, isLoading, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -34,6 +34,7 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
+    if (isLoading) return;
     if (!isAuthenticated) {
       router.push("/login");
       return;
@@ -47,7 +48,7 @@ export default function ProfilePage() {
         address: "",
       });
     }
-  }, [user, isAuthenticated, router]);
+  }, [user, isAuthenticated, isLoading, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -88,8 +89,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 py-8 sm:py-12">
-      <div className="container mx-auto px-4">
-        <div className="mx-auto max-w-4xl">
+      <div className="max-w-4xl mx-auto px-4">
           {/* Header */}
           <div className="mb-6 text-center sm:mb-8">
             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary text-white sm:h-24 sm:w-24">
@@ -274,18 +274,6 @@ export default function ProfilePage() {
                     )}
                   </div>
 
-                  {/* Account Type */}
-                  <div>
-                    <label className="mb-2 flex items-center gap-2 text-sm font-medium">
-                      <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-                      Account Type
-                    </label>
-                    <div className="rounded-md border border-border bg-muted/30 px-4 py-2">
-                      <Badge variant={isAdmin ? "secondary" : "outline"}>
-                        {isAdmin ? "Administrator" : "User"}
-                      </Badge>
-                    </div>
-                  </div>
                 </div>
               </Card>
 
@@ -318,6 +306,5 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-    </div>
   );
 }
