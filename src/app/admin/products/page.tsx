@@ -42,7 +42,7 @@ const NAV2 = [
   { label: "Reviews",   href: "#", icon: Star },
   { label: "Inventory", href: "#", icon: Boxes },
   { label: "Support",   href: "#", icon: HeadphonesIcon },
-  { label: "Settings",  href: "#", icon: Settings },
+  { label: "Settings",  href: "/admin/settings", icon: Settings },
 ];
 
 const CATEGORIES = ["All", "Smartphones", "Laptops", "Audio", "Tablets", "Accessories", "Wearables", "Gaming", "Cameras"];

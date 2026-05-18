@@ -50,7 +50,7 @@ const NAV2 = [
   { label: "Reviews",    href: "#", icon: Star },
   { label: "Inventory",  href: "#", icon: Boxes },
   { label: "Support",    href: "#", icon: HeadphonesIcon },
-  { label: "Settings",   href: "#", icon: Settings },
+  { label: "Settings",   href: "/admin/settings", icon: Settings },
 ];
 
 const QUICK_ACTIONS = [
@@ -153,13 +153,19 @@ export default function AdminDashboard() {
           );
         })}
         {(sidebarOpen || mobile) && <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 mt-4 mb-1">Tools</p>}
-        {NAV2.map(({ label, href, icon: Icon }) => (
-          <Link key={label} href={href}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all">
-            <Icon className="w-4 h-4 flex-shrink-0" />
-            {(sidebarOpen || mobile) && <span>{label}</span>}
-          </Link>
-        ))}
+        {NAV2.map(({ label, href, icon: Icon }) => {
+          const comingSoon = label !== "Settings";
+          return (
+            <Link key={label} href={href}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all">
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              {(sidebarOpen || mobile) && <span>{label}</span>}
+              {(sidebarOpen || mobile) && comingSoon && (
+                <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-gray-700 text-gray-400">Coming Soon</span>
+              )}
+            </Link>
+          );
+        })}
       </nav>
       <div className="border-t border-gray-800 p-3">
         <div className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-gray-800 cursor-pointer transition-colors">
@@ -223,12 +229,7 @@ export default function AdminDashboard() {
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-xs font-semibold text-emerald-600">Live</span>
             </div>
-            <button className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 active:scale-95"
-              style={{ background: "linear-gradient(135deg,#f97316,#fb923c)" }}
-              onClick={() => router.push("/admin/products")}>
-              <Plus className="w-4 h-4" /> Add Product
-            </button>
-            <button className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
+<button className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
               <Bell className="w-5 h-5 text-gray-500" />
             </button>
             <button className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
