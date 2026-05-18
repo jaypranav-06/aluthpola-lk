@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
 import { useFavourites } from "@/hooks/use-favourites";
@@ -19,13 +19,24 @@ const NAV_LINKS = [
   { label: "Best Sellers", href: "/best-sellers", icon: Tag },
 ];
 
-export function Header() {
+function HeaderInner() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { itemCount } = useCart();
   const { count: favCount } = useFavourites();
-  const [search, setSearch] = useState("");
-  const [mobileSearch, setMobileSearch] = useState("");
+  const urlQ = pathname === "/search" ? (searchParams.get("q") ?? "") : "";
+  const [search, setSearch] = useState(urlQ);
+  const [mobileSearch, setMobileSearch] = useState(urlQ);
+
+  useEffect(() => {
+    if (pathname === "/search") {
+      const q = searchParams.get("q") ?? "";
+      setSearch(q);
+      setMobileSearch(q);
+    }
+  }, [pathname, searchParams]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -85,7 +96,7 @@ export function Header() {
               <div className="relative flex items-center">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 <input
-                  type="search"
+                  type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search for electronics, fashion, groceries…"
@@ -225,7 +236,7 @@ export function Header() {
               <form onSubmit={(e) => { e.preventDefault(); if (mobileSearch.trim()) { router.push(`/search?q=${encodeURIComponent(mobileSearch.trim())}`); setMobileOpen(false); } }}>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input type="search" placeholder="Search products…" value={mobileSearch}
+                  <input type="text" placeholder="Search products…" value={mobileSearch}
                     onChange={e => setMobileSearch(e.target.value)}
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none focus:border-orange-400" />
                 </div>
@@ -296,5 +307,13 @@ export function Header() {
         ))}
       </nav>
     </>
+  );
+}
+
+export function Header() {
+  return (
+    <Suspense fallback={null}>
+      <HeaderInner />
+    </Suspense>
   );
 }

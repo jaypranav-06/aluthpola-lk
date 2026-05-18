@@ -232,7 +232,7 @@ export default function AdminDashboard() {
           </button>
           <form onSubmit={handleAdminSearch} className="relative flex-1 max-w-md hidden sm:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="search" value={adminSearch} onChange={e => setAdminSearch(e.target.value)}
+            <input type="text" value={adminSearch} onChange={e => setAdminSearch(e.target.value)}
               placeholder="Search orders, users, products…"
               className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none focus:border-orange-400 focus:bg-white transition-all" />
           </form>
@@ -261,7 +261,7 @@ export default function AdminDashboard() {
               <p className="text-gray-400 text-sm mt-0.5">{today}</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <Link href="/admin/products"
+              <Link href="/admin/products?add=true"
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-all active:scale-95"
                 style={{ background: "linear-gradient(135deg,#f97316,#fb923c)" }}>
                 <Plus className="w-4 h-4" /> Add Product

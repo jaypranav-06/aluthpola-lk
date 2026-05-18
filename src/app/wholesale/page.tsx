@@ -129,9 +129,9 @@ export default function WholesalePage() {
                 return (
                   <div key={product.id} className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all">
                     <div className="relative aspect-square bg-gray-50">
-                      <Link href={`/products/${product.id}`} className="block w-full h-full">
+                      <Link href={`/products/${product.id}`} className="relative block w-full h-full">
                         {product.image_url ? (
-                          <Image src={product.image_url} alt={product.name} fill className="object-cover" sizes="300px" />
+                          <Image src={product.image_url} alt={product.name} fill className="object-cover" sizes="300px" unoptimized />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-300">
                             <Package className="w-12 h-12" />

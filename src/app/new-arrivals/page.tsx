@@ -17,9 +17,12 @@ interface ApiProduct {
   name: string;
   description: string;
   price: number;
+  original_price: number | null;
   stock: number;
   category: string;
   image_url: string | null;
+  rating: number | null;
+  review_count: number | null;
   created_at?: string;
 }
 
@@ -69,11 +72,12 @@ function ProductCard({ product, onAddToCart, view }: {
     e.stopPropagation();
     toggle({ id: product.id, name: product.name, description: product.description, price: product.price, stock: product.stock, in_stock: product.stock > 0, category: product.category, image_url: product.image_url });
   };
-  const rating = 4.0 + (product.id.charCodeAt(0) % 10) / 10;
-  const reviews = 40 + (product.id.charCodeAt(0) % 8) * 80;
-  const hasDiscount = product.price > 2000;
-  const originalPrice = hasDiscount ? Math.round(product.price * 1.18) : null;
-  const discountPct = originalPrice ? Math.round(((originalPrice - product.price) / originalPrice) * 100) : 0;
+  const rating = product.rating ?? 0;
+  const reviews = product.review_count ?? 0;
+  // In DB: price = full/original price, original_price = discounted sale price
+  const hasDiscount = product.original_price != null && product.original_price < product.price;
+  const salePrice = hasDiscount ? product.original_price! : product.price;
+  const discountPct = hasDiscount ? Math.round(((product.price - salePrice) / product.price) * 100) : 0;
 
   const handleAdd = async () => {
     setAdding(true);
@@ -110,8 +114,9 @@ function ProductCard({ product, onAddToCart, view }: {
           </div>
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center gap-2">
-              <span className="text-lg font-black text-gray-900">LKR {product.price.toLocaleString()}</span>
-              {originalPrice && <span className="text-xs text-gray-400 line-through">LKR {originalPrice.toLocaleString()}</span>}
+              <span className="text-lg font-black text-gray-900">LKR {salePrice.toLocaleString()}</span>
+              {hasDiscount && <span className="text-xs text-gray-400 line-through">LKR {product.price.toLocaleString()}</span>}
+              {discountPct > 0 && <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-lg">{discountPct}% off</span>}
             </div>
             <div className="flex items-center gap-2">
               <button onClick={handleToggleFav}
@@ -135,9 +140,9 @@ function ProductCard({ product, onAddToCart, view }: {
     <div className="group bg-white rounded-2xl overflow-hidden border border-gray-100 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
       style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
       <div className="relative overflow-hidden bg-gray-50 aspect-square">
-        <Link href={`/products/${product.id}`} className="block w-full h-full">
+        <Link href={`/products/${product.id}`} className="relative block w-full h-full">
           {product.image_url
-            ? <Image src={product.image_url} alt={product.name} fill className="object-cover transition-transform duration-500 group-hover:scale-110" unoptimized />
+            ? <Image src={product.image_url} alt={product.name} fill className="object-cover transition-transform duration-500 group-hover:scale-110" unoptimized loading="eager" />
             : <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-300">
                 <Package className="w-12 h-12" /><span className="text-xs">No image</span>
               </div>}
@@ -169,8 +174,9 @@ function ProductCard({ product, onAddToCart, view }: {
         </div>
         <div className="mt-auto">
           <div className="flex items-baseline gap-2 mb-3">
-            <span className="text-lg font-black text-gray-900">LKR {product.price.toLocaleString()}</span>
-            {originalPrice && <span className="text-xs text-gray-400 line-through">LKR {originalPrice.toLocaleString()}</span>}
+            <span className="text-lg font-black text-gray-900">LKR {salePrice.toLocaleString()}</span>
+            {hasDiscount && <span className="text-xs text-gray-400 line-through">LKR {product.price.toLocaleString()}</span>}
+            {discountPct > 0 && <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-lg">{discountPct}% off</span>}
           </div>
           <button onClick={handleAdd} disabled={adding || product.stock === 0}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
@@ -205,7 +211,10 @@ export default function NewArrivalsPage() {
         cutoff.setDate(cutoff.getDate() - 30);
         const recent = all.filter(p => p.created_at && new Date(p.created_at) >= cutoff);
         // fallback: if fewer than 5 products in last 30 days, show the 20 most recent
-        setProducts(recent.length >= 5 ? recent : all.slice(0, 20));
+        const shown = recent.length >= 5 ? recent : all.slice(0, 20);
+        setProducts(shown);
+        const max = Math.max(...all.map((p: ApiProduct) => p.original_price ?? p.price));
+        setPriceRange([0, max]);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -229,18 +238,21 @@ export default function NewArrivalsPage() {
     });
   };
 
+  const maxPrice = products.length ? Math.max(...products.map(p => p.original_price ?? p.price)) : 500000;
+
   const filtered = products
     .filter(p => activeCategory === "All" || p.category === activeCategory)
     .filter(p => !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase()))
-    .filter(p => p.price >= priceRange[0] && p.price <= priceRange[1])
+    .filter(p => { const sp = (p.original_price != null && p.original_price < p.price) ? p.original_price : p.price; return sp >= priceRange[0] && sp <= priceRange[1]; })
     .sort((a, b) => {
-      if (sortBy === "price_asc")  return a.price - b.price;
-      if (sortBy === "price_desc") return b.price - a.price;
-      if (sortBy === "popular")    return b.stock - a.stock;
-      return 0;
+      const spa = (a.original_price != null && a.original_price < a.price) ? a.original_price : a.price;
+      const spb = (b.original_price != null && b.original_price < b.price) ? b.original_price : b.price;
+      if (sortBy === "price_asc")  return spa - spb;
+      if (sortBy === "price_desc") return spb - spa;
+      if (sortBy === "popular")    return (b.rating ?? 0) - (a.rating ?? 0) || (b.review_count ?? 0) - (a.review_count ?? 0);
+      // newest
+      return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
     });
-
-  const maxPrice = products.length ? Math.max(...products.map(p => p.price)) : 500000;
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -18,7 +18,8 @@ export async function GET(request: NextRequest) {
 
     if (q) {
       params.push(`%${q}%`);
-      conditions.push(`(p.name ILIKE $${params.length} OR p.description ILIKE $${params.length} OR c.name ILIKE $${params.length})`);
+      const n = params.length;
+      conditions.push(`(p.name ILIKE $${n} OR p.description ILIKE $${n} OR c.name ILIKE $${n} OR EXISTS (SELECT 1 FROM unnest(p.tags) t WHERE t ILIKE $${n}))`);
     }
 
     if (category && category !== "All") {

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { UserRole } from "@/types";
@@ -24,6 +24,7 @@ interface Product {
   stock: number;
   category: string;
   image_url?: string;
+  tags?: string[];
   created_at: string;
 }
 
@@ -54,7 +55,7 @@ function StockBadge({ stock }: { stock: number }) {
 }
 
 /* ─── Page ────────────────────────────────────────────────── */
-export default function ManageProductsPage() {
+function ManageProductsContent() {
   const router = useRouter();
   const [user, setUser] = useState<AdminUser | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -73,15 +74,21 @@ export default function ManageProductsPage() {
   const [formData, setFormData] = useState({
     name: "", description: "", price: "", stock: "", category: "", image_url: "", discount_price: "",
   });
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [keywordInput, setKeywordInput] = useState("");
   const [hasDiscount, setHasDiscount] = useState(false);
   const [modalStep, setModalStep] = useState(1);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [editFormData, setEditFormData] = useState({ name: "", description: "", price: "", stock: "", category: "", image_url: "", discount_price: "" });
+  const [editKeywords, setEditKeywords] = useState<string[]>([]);
+  const [editKeywordInput, setEditKeywordInput] = useState("");
   const [editHasDiscount, setEditHasDiscount] = useState(false);
   const [editUploadMethod, setEditUploadMethod] = useState<"url" | "file">("url");
   const [editSelectedFile, setEditSelectedFile] = useState<File | null>(null);
   const [editImagePreview, setEditImagePreview] = useState("");
   const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const raw = localStorage.getItem("user");
@@ -91,6 +98,10 @@ export default function ManageProductsPage() {
     setUser(parsed);
     loadProducts();
   }, [router]);
+
+  useEffect(() => {
+    if (searchParams.get("add") === "true") setShowAddModal(true);
+  }, [searchParams]);
 
   const showToast = (msg: string, type: "success" | "error") => {
     setToast({ msg, type });
@@ -142,6 +153,7 @@ export default function ManageProductsPage() {
           original_price: hasDiscount && formData.discount_price ? parseFloat(formData.discount_price) : null,
           stock: parseInt(formData.stock),
           category: formData.category, image_url: imageUrl || null,
+          keywords: keywords.join(","),
         }),
       });
       const data = await res.json();
@@ -149,6 +161,7 @@ export default function ManageProductsPage() {
       showToast("Product added successfully!", "success");
       setShowAddModal(false);
       setFormData({ name: "", description: "", price: "", stock: "", category: "", image_url: "", discount_price: "" });
+      setKeywords([]); setKeywordInput("");
       setSelectedFile(null); setImagePreview(""); setUploadMethod("url"); setHasDiscount(false); setModalStep(1);
       loadProducts();
     } catch {
@@ -170,6 +183,8 @@ export default function ManageProductsPage() {
       image_url: product.image_url || "",
       discount_price: product.original_price ? product.original_price.toString() : "",
     });
+    setEditKeywords(product.tags ?? []);
+    setEditKeywordInput("");
     setEditHasDiscount(!!product.original_price);
     setEditUploadMethod("url");
     setEditSelectedFile(null);
@@ -228,6 +243,7 @@ export default function ManageProductsPage() {
           category: editFormData.category,
           image_url: imageUrl || null,
           original_price: editHasDiscount && editFormData.discount_price ? parseFloat(editFormData.discount_price) : null,
+          keywords: editKeywords.join(","),
         }),
       });
       if (res.ok) {
@@ -721,7 +737,7 @@ export default function ManageProductsPage() {
                     {modalStep === 1 ? "Basic information about the product" : "Upload an image and set pricing"}
                   </p>
                 </div>
-                <button onClick={() => { setShowAddModal(false); setModalStep(1); }}
+                <button onClick={() => { setShowAddModal(false); setModalStep(1); setKeywords([]); setKeywordInput(""); }}
                   className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                   <X className="w-4 h-4" />
                 </button>
@@ -761,6 +777,41 @@ export default function ManageProductsPage() {
                           </button>
                         ))}
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Keywords</label>
+                      <div className={`flex flex-wrap gap-1.5 px-3 py-2.5 rounded-xl border bg-gray-50 transition-all focus-within:border-orange-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-orange-100 ${keywords.length > 0 ? "border-orange-200" : "border-gray-200"}`}>
+                        {keywords.map(k => (
+                          <span key={k} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[11px] font-semibold">
+                            {k}
+                            <button type="button" onClick={() => setKeywords(keywords.filter(t => t !== k))} className="ml-0.5 hover:text-red-500 transition-colors leading-none">×</button>
+                          </span>
+                        ))}
+                        <input
+                          type="text"
+                          value={keywordInput}
+                          onChange={e => setKeywordInput(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === "Enter" || e.key === ",") {
+                              e.preventDefault();
+                              const val = keywordInput.trim().toLowerCase().replace(/,/g, "");
+                              if (val && !keywords.includes(val)) setKeywords([...keywords, val]);
+                              setKeywordInput("");
+                            } else if (e.key === "Backspace" && !keywordInput && keywords.length > 0) {
+                              setKeywords(keywords.slice(0, -1));
+                            }
+                          }}
+                          onBlur={() => {
+                            const val = keywordInput.trim().toLowerCase().replace(/,/g, "");
+                            if (val && !keywords.includes(val)) setKeywords([...keywords, val]);
+                            setKeywordInput("");
+                          }}
+                          placeholder={keywords.length === 0 ? "Type a keyword and press Enter…" : ""}
+                          className="flex-1 min-w-[120px] bg-transparent text-sm outline-none text-gray-700 placeholder-gray-400"
+                        />
+                      </div>
+                      <p className="text-[11px] text-gray-400 mt-1">Press Enter or comma to add a tag. Customers can search by these keywords.</p>
                     </div>
                   </div>
                 )}
@@ -864,7 +915,7 @@ export default function ManageProductsPage() {
                 <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
                   {modalStep === 1 ? (
                     <>
-                      <button type="button" onClick={() => { setShowAddModal(false); setModalStep(1); }}
+                      <button type="button" onClick={() => { setShowAddModal(false); setModalStep(1); setKeywords([]); setKeywordInput(""); }}
                         className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">
                         Cancel
                       </button>
@@ -1014,6 +1065,41 @@ export default function ManageProductsPage() {
                   </div>
                 </div>
 
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Keywords</label>
+                  <div className={`flex flex-wrap gap-1.5 px-3 py-2.5 rounded-xl border bg-gray-50 transition-all focus-within:border-orange-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-orange-100 ${editKeywords.length > 0 ? "border-orange-200" : "border-gray-200"}`}>
+                    {editKeywords.map(k => (
+                      <span key={k} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[11px] font-semibold">
+                        {k}
+                        <button type="button" onClick={() => setEditKeywords(editKeywords.filter(t => t !== k))} className="ml-0.5 hover:text-red-500 transition-colors leading-none">×</button>
+                      </span>
+                    ))}
+                    <input
+                      type="text"
+                      value={editKeywordInput}
+                      onChange={e => setEditKeywordInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === "Enter" || e.key === ",") {
+                          e.preventDefault();
+                          const val = editKeywordInput.trim().toLowerCase().replace(/,/g, "");
+                          if (val && !editKeywords.includes(val)) setEditKeywords([...editKeywords, val]);
+                          setEditKeywordInput("");
+                        } else if (e.key === "Backspace" && !editKeywordInput && editKeywords.length > 0) {
+                          setEditKeywords(editKeywords.slice(0, -1));
+                        }
+                      }}
+                      onBlur={() => {
+                        const val = editKeywordInput.trim().toLowerCase().replace(/,/g, "");
+                        if (val && !editKeywords.includes(val)) setEditKeywords([...editKeywords, val]);
+                        setEditKeywordInput("");
+                      }}
+                      placeholder={editKeywords.length === 0 ? "Type a keyword and press Enter…" : ""}
+                      className="flex-1 min-w-[120px] bg-transparent text-sm outline-none text-gray-700 placeholder-gray-400"
+                    />
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-1">Press Enter or comma to add a tag. Customers can search by these keywords.</p>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Price (LKR) *</label>
@@ -1114,5 +1200,18 @@ export default function ManageProductsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ManageProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black"
+          style={{ background: "linear-gradient(135deg,#f97316,#fb923c)" }}>A</div>
+      </div>
+    }>
+      <ManageProductsContent />
+    </Suspense>
   );
 }

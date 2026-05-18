@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
         p.stock_quantity,
         p.rating,
         p.review_count,
+        p.tags,
         COALESCE(c.name, 'Uncategorized') as category,
         pi.image_url,
         p.created_at
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, description, price, original_price, stock, category, image_url } = body;
+    const { name, description, price, original_price, stock, category, image_url, keywords } = body;
 
     // Validate required fields
     if (!name || !description || price === undefined || stock === undefined || !category) {
@@ -115,12 +116,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Parse keywords into a tags array
+    const tagsArray: string[] = keywords
+      ? keywords.split(",").map((k: string) => k.trim().toLowerCase()).filter(Boolean)
+      : [];
+
     // Insert new product
     const productResult = await query(
-      `INSERT INTO products (name, slug, description, price, original_price, stock_quantity, category_id, in_stock, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true)
-       RETURNING id, name, slug, description, price, original_price, stock_quantity, created_at`,
-      [name, slug, description, price, original_price || null, stock, categoryId, stock > 0]
+      `INSERT INTO products (name, slug, description, price, original_price, stock_quantity, category_id, in_stock, is_active, tags)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9::text[])
+       RETURNING id, name, slug, description, price, original_price, stock_quantity, tags, created_at`,
+      [name, slug, description, price, original_price || null, stock, categoryId, stock > 0, tagsArray]
     );
 
     const product = productResult.rows[0];

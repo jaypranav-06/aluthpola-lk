@@ -81,10 +81,10 @@ function ProductCard({ product, onAddToCart }: { product: ApiProduct; onAddToCar
       style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
       {/* Image */}
       <div className="relative overflow-hidden bg-gray-50 aspect-square">
-        <Link href={`/products/${product.id}`} className="block w-full h-full">
+        <Link href={`/products/${product.id}`} className="relative block w-full h-full">
           {product.image_url ? (
             <Image src={product.image_url} alt={product.name} fill
-              className="object-cover transition-transform duration-500 group-hover:scale-110" unoptimized />
+              className="object-cover transition-transform duration-500 group-hover:scale-110" unoptimized loading="eager" />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50">
               <Package className="w-16 h-16 text-orange-200" strokeWidth={1} />

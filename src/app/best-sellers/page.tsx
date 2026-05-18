@@ -165,9 +165,9 @@ function ProductCard({ product, onAddToCart, view, rank }: {
     <div className="group bg-white rounded-2xl overflow-hidden border border-gray-100 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
       style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
       <div className="relative overflow-hidden bg-gray-50 aspect-square">
-        <Link href={`/products/${product.id}`} className="block w-full h-full">
+        <Link href={`/products/${product.id}`} className="relative block w-full h-full">
           {product.image_url
-            ? <Image src={product.image_url} alt={product.name} fill className="object-cover transition-transform duration-500 group-hover:scale-110" unoptimized />
+            ? <Image src={product.image_url} alt={product.name} fill className="object-cover transition-transform duration-500 group-hover:scale-110" unoptimized loading="eager" />
             : <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-300">
                 <Package className="w-12 h-12" /><span className="text-xs">No image</span>
               </div>}
@@ -235,6 +235,8 @@ export default function BestSellersPage() {
           return (b.review_count ?? 0) - (a.review_count ?? 0);
         });
         setProducts(sorted);
+        const max = Math.max(...(d.products as ApiProduct[]).map((p: ApiProduct) => p.original_price ?? p.price));
+        setPriceRange([0, max]);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -260,6 +262,10 @@ export default function BestSellersPage() {
     });
   };
 
+  const maxPrice = products.length
+    ? Math.max(...products.map(p => p.original_price ?? p.price))
+    : 500000;
+
   const filtered = products
     .filter(p => activeCategory === "All" || p.category === activeCategory)
     .filter(p => !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -275,10 +281,6 @@ export default function BestSellersPage() {
       if (sortBy === "price_desc")   return pb - pa;
       return 0;
     });
-
-  const maxPrice = products.length
-    ? Math.max(...products.map(p => p.original_price ?? p.price))
-    : 500000;
 
   return (
     <div className="min-h-screen bg-gray-50">

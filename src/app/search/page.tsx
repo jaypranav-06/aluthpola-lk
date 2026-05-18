@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   Search, ShoppingCart, Heart, Star, SlidersHorizontal,
-  Grid3x3, List, X, Package, ChevronRight,
+  Grid3x3, List, Package, ChevronRight,
   Laptop, Shirt, ShoppingBasket, Home, Dumbbell,
   Smartphone, Gamepad2, Sparkles,
 } from "lucide-react";
@@ -177,7 +177,6 @@ function SearchContent() {
   const router = useRouter();
   const q = searchParams.get("q") || "";
 
-  const [query, setQuery] = useState(q);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("All");
@@ -199,47 +198,11 @@ function SearchContent() {
   }, []);
 
   useEffect(() => {
-    setQuery(q);
     fetchResults(q, category, sort);
   }, [q, category, sort, fetchResults]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (query.trim()) router.push(`/search?q=${encodeURIComponent(query.trim())}`);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 pb-20 sm:pb-6">
-      {/* Search bar */}
-      <div className="bg-white border-b border-gray-100 px-4 py-4">
-        <div className="max-w-3xl mx-auto">
-          <form onSubmit={handleSearch}>
-            <div className="relative flex items-center">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-              <input
-                type="search"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder="Search for electronics, fashion, groceries…"
-                className="w-full pl-10 pr-28 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100 transition-all"
-                autoFocus
-              />
-              {query && (
-                <button type="button" onClick={() => setQuery("")}
-                  className="absolute right-24 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-              <button type="submit"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 py-1.5 rounded-lg text-white text-sm font-semibold hover:opacity-90 active:scale-95 transition-all"
-                style={{ background: "#f97316" }}>
-                Search
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 py-5">
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
@@ -326,7 +289,7 @@ function SearchContent() {
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               {["Electronics", "Fashion", "Groceries"].map(cat => (
-                <button key={cat} onClick={() => { setCategory(cat); setQuery(""); router.push("/search"); }}
+                <button key={cat} onClick={() => { setCategory(cat); router.push("/search"); }}
                   className="px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:border-orange-300 hover:text-orange-500 transition-all bg-white">
                   Browse {cat}
                 </button>

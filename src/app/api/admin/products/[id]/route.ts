@@ -7,11 +7,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, description, price, original_price, stock, category, image_url } = body;
+    const { name, description, price, original_price, stock, category, image_url, keywords } = body;
 
     if (!name || !description || price === undefined || stock === undefined || !category) {
       return NextResponse.json({ error: "All required fields must be provided" }, { status: 400 });
     }
+
+    const tagsArray: string[] = keywords
+      ? keywords.split(",").map((k: string) => k.trim().toLowerCase()).filter(Boolean)
+      : [];
 
     // Find or create category
     const categorySlug = category.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").trim();
@@ -29,8 +33,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // Update product
     await query(
-      `UPDATE products SET name=$1, description=$2, price=$3, original_price=$4, stock_quantity=$5, category_id=$6, in_stock=$7, updated_at=NOW() WHERE id=$8`,
-      [name, description, price, original_price || null, stock, categoryId, stock > 0, id]
+      `UPDATE products SET name=$1, description=$2, price=$3, original_price=$4, stock_quantity=$5, category_id=$6, in_stock=$7, tags=$8::text[], updated_at=NOW() WHERE id=$9`,
+      [name, description, price, original_price || null, stock, categoryId, stock > 0, tagsArray, id]
     );
 
     // Update image if provided
