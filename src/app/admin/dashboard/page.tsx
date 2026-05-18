@@ -88,6 +88,17 @@ export default function AdminDashboard() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [adminSearch, setAdminSearch] = useState("");
+
+  const handleAdminSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = adminSearch.trim().toLowerCase();
+    if (!q) return;
+    if (q.match(/order|#/)) router.push("/admin/orders");
+    else if (q.match(/user|customer|email/)) router.push("/admin/users");
+    else if (q.match(/product|item|stock/)) router.push("/admin/products");
+    else router.push("/admin/orders");
+  };
 
   useEffect(() => {
     const raw = localStorage.getItem("user");
@@ -219,11 +230,12 @@ export default function AdminDashboard() {
             onClick={() => setMobileSidebarOpen(true)}>
             <Menu className="w-5 h-5 text-gray-500" />
           </button>
-          <div className="relative flex-1 max-w-md hidden sm:block">
+          <form onSubmit={handleAdminSearch} className="relative flex-1 max-w-md hidden sm:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="search" placeholder="Search orders, users, products…"
+            <input type="search" value={adminSearch} onChange={e => setAdminSearch(e.target.value)}
+              placeholder="Search orders, users, products…"
               className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none focus:border-orange-400 focus:bg-white transition-all" />
-          </div>
+          </form>
           <div className="ml-auto flex items-center gap-2">
             <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />

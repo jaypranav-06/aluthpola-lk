@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
 import { useFavourites } from "@/hooks/use-favourites";
@@ -19,10 +20,12 @@ const NAV_LINKS = [
 ];
 
 export function Header() {
+  const router = useRouter();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { itemCount } = useCart();
   const { count: favCount } = useFavourites();
   const [search, setSearch] = useState("");
+  const [mobileSearch, setMobileSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -76,7 +79,7 @@ export function Header() {
 
             {/* Search */}
             <form
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={(e) => { e.preventDefault(); if (search.trim()) router.push(`/search?q=${encodeURIComponent(search.trim())}`); }}
               className="flex-1 max-w-2xl"
             >
               <div className="relative flex items-center">
@@ -219,11 +222,14 @@ export function Header() {
         {mobileOpen && (
           <div className="sm:hidden bg-white border-b border-gray-100 shadow-lg">
             <div className="p-4 border-b border-gray-100">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input type="search" placeholder="Search products…"
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none focus:border-orange-400" />
-              </div>
+              <form onSubmit={(e) => { e.preventDefault(); if (mobileSearch.trim()) { router.push(`/search?q=${encodeURIComponent(mobileSearch.trim())}`); setMobileOpen(false); } }}>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input type="search" placeholder="Search products…" value={mobileSearch}
+                    onChange={e => setMobileSearch(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none focus:border-orange-400" />
+                </div>
+              </form>
             </div>
             <nav className="p-3 flex flex-col gap-1">
               {NAV_LINKS.map(({ label, href, icon: Icon }) => (
