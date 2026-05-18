@@ -85,7 +85,7 @@ function ProductCard({ product, view }: { product: Product; view: "grid" | "list
       <div className="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-md transition-shadow">
         <Link href={`/products/${product.id}`} className="flex-shrink-0 w-28 h-28 rounded-xl overflow-hidden bg-gray-50">
           {product.image_url
-            ? <Image src={product.image_url} alt={product.name} width={112} height={112} className="w-full h-full object-cover" />
+            ? <Image src={product.image_url} alt={product.name} width={112} height={112} className="w-full h-full object-cover" unoptimized />
             : <div className="w-full h-full flex items-center justify-center"><Package className="w-8 h-8 text-gray-300" /></div>}
         </Link>
         <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -130,7 +130,7 @@ function ProductCard({ product, view }: { product: Product; view: "grid" | "list
     <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all group">
       <Link href={`/products/${product.id}`} className="block relative aspect-square bg-gray-50 overflow-hidden">
         {product.image_url
-          ? <Image src={product.image_url} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+          ? <Image src={product.image_url} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" unoptimized />
           : <div className="w-full h-full flex items-center justify-center"><Package className="w-12 h-12 text-gray-200" /></div>}
         {discount && (
           <span className="absolute top-2 left-2 px-2 py-0.5 rounded-lg text-xs font-bold text-white bg-emerald-500">-{discount}%</span>
